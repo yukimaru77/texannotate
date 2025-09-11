@@ -16,7 +16,7 @@ colorama
 streamlit
 git+https://github.com/streamlit/files-connection
 unidecode
-htmlmin
+htmlmin2
 bs4
 Pebble # for multiprocess
 # Development dependencies
