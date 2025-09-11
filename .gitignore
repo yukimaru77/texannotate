@@ -42,3 +42,6 @@ solved/
 *.html
 *.mmd
 *.json
+
+!data/
+!data/unimathsymbols.txt
