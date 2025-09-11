@@ -1,22 +1,48 @@
-From danteev/texlive:latest
+FROM danteev/texlive:latest
+
+# bash をデフォルトシェルに
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
-    python3.13-venv
+    python3.13-venv \
+ && rm -rf /var/lib/apt/lists/*
 
+# 作業ディレクトリ
 RUN mkdir -p /TEX
 WORKDIR /TEX
-RUN git clone https://github.com/yukimaru77/texannotate.git
-RUN curl -L https://install.perlbrew.pl | bash
-RUN source ~/perl5/perlbrew/etc/bashrc && \
-    perlbrew init
-RUN perlbrew install --notest perl-5.22.4
-RUN perlbrew switch perl-5.22.4
-RUN perlbrew install-cpanm
-RUN cpanm https://github.com/Fireblossom/TeX-AutoTeX-Mod.git
 
-# 例: /TeX/texannotate/requirements.txt の htmlmin を htmlmin2 に置換してからインストール
-RUN python3 -m venv venv && . venv/bin/activate && \
-    pip install --upgrade pip && \
-    pip install -r "$REQ"
+# リポジトリ取得
+RUN git clone https://github.com/yukimaru77/texannotate.git
+
+# perlbrew インストール
+RUN curl -L https://install.perlbrew.pl | bash
+
+# perlbrew の環境変数と PATH
+ENV PERLBREW_ROOT=/root/perl5/perlbrew
+ENV PATH="${PERLBREW_ROOT}/bin:${PATH}"
+
+# bash 起動時に perlbrew を有効化
+RUN echo 'source ${PERLBREW_ROOT}/etc/bashrc' >> /root/.bashrc
+
+# perl を入れて有効化 & cpanm
+RUN perlbrew init \
+ && perlbrew install --notest perl-5.22.4 \
+ && perlbrew switch perl-5.22.4 \
+ && perlbrew install-cpanm
+
+# TeX-AutoTeX-Mod をインストール
+RUN cpanm --notest https://github.com/Fireblossom/TeX-AutoTeX-Mod.git
+
+# Python 仮想環境 & 依存関係
+# requirements のパスを可変にしたいなら ARG を使う
+ARG REQ=/TEX/texannotate/requirements.txt
+RUN python3 -m venv /opt/venv \
+ && source /opt/venv/bin/activate \
+ && pip install --upgrade pip \
+ && pip install -r texannotate/requirements.txt
+
+# venv を PATH に
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
