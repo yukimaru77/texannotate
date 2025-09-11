@@ -176,3 +176,9 @@ def compile_html_return_text(
             return contents
 
     raise CompilationException('No pdf output.')
+
+from .local import compile_pdf_locally
+
+__all__ = [
+    "compile_pdf_locally",
+]
