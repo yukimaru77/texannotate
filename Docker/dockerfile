@@ -1,43 +1,30 @@
-FROM danteev/texlive:latest
+FROM texlive/texlive:latest-full
 
+###############################################################################
+# 先に git を入れておく（以下の「保持ブロック」で git clone するため）
+###############################################################################
+RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+
+###############################################################################
+# ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ ここは「変更せずに保持」 ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
 # bash をデフォルトシェルに
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
+    wget \
     python3.13-venv \
  && rm -rf /var/lib/apt/lists/*
 
 # 作業ディレクトリ
-RUN mkdir -p /TEX
-WORKDIR /TEX
+RUN mkdir -p /TeX
+WORKDIR /TeX
 
 # リポジトリ取得
 RUN git clone https://github.com/yukimaru77/texannotate.git
 
-# perlbrew インストール
-RUN curl -L https://install.perlbrew.pl | bash
-
-# perlbrew の環境変数と PATH
-ENV PERLBREW_ROOT=/root/perl5/perlbrew
-ENV PATH="${PERLBREW_ROOT}/bin:${PATH}"
-
-# bash 起動時に perlbrew を有効化
-RUN echo 'source ${PERLBREW_ROOT}/etc/bashrc' >> /root/.bashrc
-
-# perl を入れて有効化 & cpanm
-RUN perlbrew init \
- && perlbrew install --notest perl-5.22.4 \
- && perlbrew switch perl-5.22.4 \
- && perlbrew install-cpanm
-
-# TeX-AutoTeX-Mod をインストール
-RUN cpanm --notest https://github.com/Fireblossom/TeX-AutoTeX-Mod.git
-
 # Python 仮想環境 & 依存関係
-# requirements のパスを可変にしたいなら ARG を使う
-ARG REQ=/TEX/texannotate/requirements.txt
 RUN python3 -m venv /opt/venv \
  && source /opt/venv/bin/activate \
  && pip install --upgrade pip \
@@ -46,3 +33,22 @@ RUN python3 -m venv /opt/venv \
 # venv を PATH に
 ENV VIRTUAL_ENV=/opt/venv
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
+# ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ ここまで「変更せずに保持」 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
+###############################################################################
+
+###############################################################################
+# AutoTeX(Perlモジュール)を「現行Perl」に入れるだけ（perlbrew 不要）
+###############################################################################
+RUN apt-get update && apt-get install -y cpanminus \
+ && rm -rf /var/lib/apt/lists/*
+
+# TeX::AutoTeX のフォーク（現行Perl対応）
+RUN cpanm --notest https://github.com/Fireblossom/TeX-AutoTeX-Mod.git
+
+###############################################################################
+# 便利設定（任意）
+###############################################################################
+# ImageMagick ポリシー緩和が必要なら下を有効化
+# RUN perl -pi.bak -e 's/rights="none" pattern="([XE]?PS\d?|PDF)"/rights="read|write" pattern="$1"/g' /etc/ImageMagick-6/policy.xml
+
+RUN echo 'alias pdflatex="pdflatex -interaction=nonstopmode"' >> ~/.bashrc
