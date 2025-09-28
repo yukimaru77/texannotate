@@ -13,7 +13,6 @@ venv2
 sources
 outputs
 arxiv
-downloaded
 *.log
 
 # Text editor temporary files
@@ -23,7 +22,7 @@ downloaded
 *.egg-info
 test.*
 *.pdf
-data/
+data/*
 *.cwl
 *.csv
 *.tex
@@ -43,5 +42,4 @@ solved/
 *.mmd
 *.json
 
-!data/
 !data/unimathsymbols.txt

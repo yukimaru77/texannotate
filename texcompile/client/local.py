@@ -8,8 +8,8 @@ from typing import Tuple
 
 # --- 環境に合わせて設定する定数 ---
 # 【修正箇所】呼び出すべきPerlのフルパスを明示的に指定
-PERL_BINARY_PATH = "/root/perl5/perlbrew/perls/perl-5.22.4/bin/perl"
-PERL_SCRIPT_PATH = "/TeX/texannotate/texcompile/service/run_autotex.pl"
+PERL_BINARY_PATH = "/usr/bin/perl"
+PERL_SCRIPT_PATH = "/TEX/texannotate/texcompile/service/run_autotex.pl"
 TEXLIVE_PATH = "/usr/local/texlive/2025"
 TEXLIVE_BIN_PATH = "/usr/local/texlive/2025/bin/x86_64-linux"
 # ------------------------------------
